@@ -18,6 +18,10 @@
   },
   "homepage": "https://github.com/darianhdz/DiscordBot#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "@discordjs/opus": "^0.3.3",
+    "@keyv/mysql": "^1.1.4",
+    "discord.js": "^12.5.1",
+    "ffmpeg-static": "^4.2.7",
+    "keyv": "^4.0.3"
   }
 }
