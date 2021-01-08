@@ -1,8 +1,10 @@
 // adding modules
 const Discord = require('discord.js');
 const config = require('./config.json');
-const fs = require('fs');
+const Keyv = require('keyv');
+const keyv = new Keyv('mysql://root:password@localhost::3306/strikebot');
 const client = new Discord.Client();
+keyv.on('error', err => console.error('Keyv connection error:', err));
 
 // console output to check functionality
 client.once('ready', () => {
