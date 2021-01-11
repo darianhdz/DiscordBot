@@ -1,8 +1,13 @@
+/* eslint-disable no-inline-comments */
 // adding modules
 const Discord = require('discord.js');
+// to connect to mysql
 const { createConnection } = require('mysql');
+
 const client = new Discord.Client();
+// prefix for commands
 const prefix = '/';
+// connecting to mysql
 const database = createConnection({
 	host : 'localhost',
 	user: 'root',
@@ -10,6 +15,7 @@ const database = createConnection({
 	database: 'strikebot',
 });
 
+// checking to see if connection was successful
 database.connect(function(err) {
 	if(err) throw err;
 	console.log('Connected');
@@ -20,49 +26,50 @@ client.once('ready', () => {
 	console.log('Ready!');
 });
 
+// function to monitor messages
 client.on('message', async message => {
-	const ps1 = message.content.split(' ');
-	if (message.content.startsWith(prefix)) {
-		if(message.content.includes('/add')) {
-			const ps2 = ps1[1];
-			database.query('INSERT INTO banned_words VALUES ("' + ps2 + '")', [ps2], function(error, results, fields) {
-				if(error) {
+	const ps1 = message.content.split(' '); // ps1 consists of an array filled with pieces of a message
+	if (message.content.startsWith(prefix)) { // if a message starts with the / prefix
+		if(message.content.includes('/add')) { // if a message starts with add
+			const ps2 = ps1[1]; // assign the word desired to be banned to ps2
+			database.query('INSERT INTO banned_words VALUES ("' + ps2 + '")', [ps2], function(error, results, fields) { // sql to insert into database
+				if(error) { // checks for error
 					console.log(error);
 				}
-				return message.reply('' + ps2 + ' added to banned words successfully.');
+				return message.reply('' + ps2 + ' added to banned words successfully.'); // replies to user with confirmation
 			});
 		}
 	}
 	else {
 		const cont = message.content;
-		if(message.author.bot) {
-			if(cont.includes('ATTENTION YOU ARE NOW KICKED. GOODBYE.')) {
+		if(message.author.bot) { // if the author of a message is the bot
+			if(cont.includes('ATTENTION YOU ARE NOW KICKED. GOODBYE.')) { // only continues if the message contains the banning message
 				const member = message.mentions.members.first();
 				member.kick().catch(err => {
 					console.error(err);
-					message.channel.send('could not kick uWu');
+					message.channel.send('Unable to kick, permissions too high.'); // if user was unable to be kicked.
 				});
-				database.query('DELETE FROM USERS WHERE username = ?', [member.user.username], function(error, results, fields) {
+				database.query('DELETE FROM USERS WHERE username = ?', [member.user.username], function(error, results, fields) { // deletes user's record from database
 					if(error) console.log(error);
 				});
 			}
 			return;
 		}
 		const authorMsg = message.author.username;
-		ps1.forEach(function(element) {
-			database.query('SELECT * FROM banned_words WHERE word = ?', [element], function(error, results, fields) {
+		ps1.forEach(function(element) { // loops through words in the split array to search for banned ones
+			database.query('SELECT * FROM banned_words WHERE word = ?', [element], function(error, results, fields) { // searches banned_words database for the word in array
 				if(error) console.log(error);
-				if(results.length > 0) {
-					database.query('SELECT strike_count FROM users WHERE username = ?', [message.author.username], function(error, results, fields) {
+				if(results.length > 0) { // if result is returned, continue
+					database.query('SELECT strike_count FROM users WHERE username = ?', [message.author.username], function(error, results, fields) { // checks strike count of user
 						if(error) {
 							console.log(error);
 						}
 						if(results.length > 0) {
 							const upstrikeCount = results[0].strike_count;
-							if(upstrikeCount >= 2) {
+							if(upstrikeCount >= 2) { // if strike count is at 2, kicks user
 								return message.reply('ATTENTION YOU ARE NOW KICKED. GOODBYE.');
 							}
-							else {
+							else { // if strike count is below 2, set it to 2, as user could only be present in database if they have a strike on record
 								database.query('UPDATE users SET strike_count = ? WHERE username = ?', [2, authorMsg], function(error, results, fields) {
 									if(error) {
 										console.log(error);
@@ -71,7 +78,7 @@ client.on('message', async message => {
 								});
 							}
 						}
-						else {
+						else { // if the user was not found in database, set strike count to 1
 							database.query('INSERT INTO users(username, strike_count) VALUES ("' + message.author.username + '", 1)', [message.author.username], function(error, results) {
 								if(error) {
 									console.log(error);
@@ -88,4 +95,4 @@ client.on('message', async message => {
 
 
 // token
-client.login('Nzk3MTQxNDQ3NjQzNjI3NTQx.X_iJ0w.J5VbSqvTriuufASOPgikOGZI1Uc');
+client.login('insert token here');
